@@ -1,0 +1,161 @@
+.markdown {
+  box-sizing: border-box;
+  line-height: 160%;
+  flex: 1;
+  text-align: justify;
+  min-width: 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+
+  * {
+    margin: 0px;
+  }
+
+  & > * {
+    box-sizing: border-box;
+    max-width: 100%;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  & > div,
+  & > pre,
+  & > img {
+    width: 100%;
+    padding: 16px;
+    box-shadow: 2px 2px 7px #b0a0c0;
+    overflow-x: auto;
+
+    @media (min-width: 768px) {
+      width: fit-content;
+      max-width: calc(100% - 64px);
+      border-radius: 16px;
+    }
+  }
+
+  & > h1,
+  & > h2,
+  & > h3,
+  & > h4,
+  & > p,
+  & > ol,
+  & > ul,
+  & > code {
+    width: 100%;
+    line-height: 1.6rem;
+  }
+
+  & > p {
+    text-indent: 1rem;
+  }
+
+  & > h1,
+  & > h2 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding-top: 64px;
+  }
+
+  & > h3,
+  & > h4 {
+    font-size: 1.3rem;
+    font-weight: bold;
+    padding-top: 32px;
+  }
+
+  ul {
+    width: calc(100% - 32px);
+    list-style-type: circle;
+    padding-left: 32px;
+  }
+
+  ol {
+    width: calc(100% - 32px);
+    list-style-type: decimal;
+    padding-left: 32px;
+  }
+
+  & > blockquote {
+    width: calc(100% - 32px);
+    padding: 16px;
+    background-color: #00000010;
+    border-left: solid 3px #aaaaaa;
+    color: #555555;
+    word-break: keep-all;
+  }
+
+  code {
+    font-family: monospace;
+    font-size: 0.8rem;
+    line-height: 160%;
+  }
+
+  mjx-container {
+    display: inline-block;
+  }
+
+  & > mjx-container {
+    overflow-x: auto;
+  }
+
+  & > pre:has(> code) {
+    width: 100%;
+    padding: 0px;
+
+    & > code {
+      padding: 32px;
+    }
+  }
+
+  & pre.mermaid {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+  }
+
+  table,
+  th,
+  td {
+    border: 1px solid black;
+    border-collapse: collapse;
+  }
+
+  table {
+    padding: 16px;
+  }
+
+  th,
+  td {
+    text-align: center;
+    padding: 4px 8px;
+  }
+
+  * {
+    &::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background-color: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background-color: #555566;
+
+      &:hover {
+        background-color: #ff7b72;
+      }
+    }
+
+    &::-webkit-scrollbar-button {
+      display: none;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      border-radius: 5px;
+    }
+  }
+}
