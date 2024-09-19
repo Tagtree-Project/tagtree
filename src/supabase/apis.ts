@@ -3,7 +3,7 @@ import type { Group, Tag, Relation, Markdown } from "./responses";
 
 const supabase = createClient(
   process.env.SUPABASE_URL ?? "",
-  process.env.SUPABASE_KEY ?? ""
+  process.env.SUPABASE_ANON_KEY ?? ""
 );
 
 export async function getAllGroups(): Promise<Group[] | undefined> {
