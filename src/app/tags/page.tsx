@@ -4,13 +4,13 @@ import { getTagsPageInfo } from "@/supabase/apis";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUp, faQuestion } from "@fortawesome/free-solid-svg-icons";
 
-const viewHeight = 800;
+const viewHeight = "500px";
 
 function PreviewDiv({ children }: { children: (JSX.Element | string)[] }) {
   return (
     <div
       className="max-w-screen-lg w-full border-dotted border-[3px] border-[#aaaaaa] rounded-[16px] m-[16px] box-border text-center flex flex-col justify-center opacity-80"
-      style={{ height: `${viewHeight - 32}px` }}
+      style={{ height: `calc(${viewHeight} - 32px)` }}
     >
       {children}
     </div>
@@ -33,16 +33,19 @@ export default async function Tags({
   return (
     <>
       <div className="p-[8px] text-center">
-        {tagsPageInfo?.groups?.sort()?.map((group) => (
-          <RouterButton
-            key={group}
-            url={`/tags?group=${group}`}
-            className={`m-[5px] p-[10px] shadow bg-transparent border-[none] rounded-[16px] [transition:0.2s] hover:bg-brand ${
-              group === targetGroup && "text-white bg-brand"
-            }`}
-            text={group}
-          />
-        ))}
+        {tagsPageInfo?.groups
+          ?.sort()
+          ?.map((group) => (
+            <RouterButton
+              key={group}
+              url={`/tags?group=${group}`}
+              className={`m-[5px] p-[10px] shadow bg-transparent border-[none] rounded-[16px] [transition:0.2s] hover:bg-brand ${
+                group === targetGroup && "bg-brand"
+              }`}
+              style={group === targetGroup ? { color: "white" } : undefined}
+              text={group}
+            />
+          ))}
       </div>
       <div className="flex flex-row justify-center">
         {!targetGroup ? (
@@ -66,7 +69,7 @@ export default async function Tags({
                 nexts: nextTags.filter((next) => next !== null),
               })) || []
             }
-            height={`${viewHeight}px`}
+            height={viewHeight}
           />
         )}
       </div>
