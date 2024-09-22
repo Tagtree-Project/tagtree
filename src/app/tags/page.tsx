@@ -4,7 +4,6 @@ import { getTagsPageInfo } from "@/supabase/apis";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowUp, faQuestion } from "@fortawesome/free-solid-svg-icons";
 
-const noneGroupName = "기타";
 const viewHeight = 800;
 
 function PreviewDiv({ children }: { children: (JSX.Element | string)[] }) {
@@ -25,16 +24,16 @@ export default async function Tags({
 }) {
   const targetGroup = searchParams.group;
   const tagsPageInfo =
-    typeof targetGroup === "string" || targetGroup === undefined
-      ? await getTagsPageInfo(
-          !targetGroup || targetGroup === noneGroupName ? null : targetGroup
-        )
-      : undefined;
+    typeof targetGroup === "string"
+      ? await getTagsPageInfo(targetGroup)
+      : typeof targetGroup === "undefined"
+        ? await getTagsPageInfo(null)
+        : undefined;
 
   return (
     <>
       <div className="p-[8px] text-center">
-        {Array.from(tagsPageInfo?.groups || []).map((group) => (
+        {tagsPageInfo?.groups?.sort()?.map((group) => (
           <RouterButton
             key={group}
             url={`/tags?group=${group}`}
@@ -52,7 +51,7 @@ export default async function Tags({
             카테고리를 선택하세요.
           </PreviewDiv>
         ) : typeof targetGroup !== "string" ||
-          !tagsPageInfo?.groups?.find((group) => group === targetGroup) ? (
+          !tagsPageInfo?.groups?.includes(targetGroup) ? (
           <PreviewDiv>
             <FontAwesomeIcon icon={faQuestion} />
             잘못된 카테고리입니다.

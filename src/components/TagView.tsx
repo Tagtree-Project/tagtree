@@ -100,11 +100,14 @@ export default function TagView({
 
   // Mermaid 다이어그램을 로드하고 초기 설정을 진행
   useEffect(() => {
+    const tagSet = new Set(tags.map(({ tag }) => tag));
+
     // 관계 그래프 생성
     const graph = tags
       .sort((a, b) => a.tag.localeCompare(b.tag))
       .map(({ tag, nexts }) =>
         nexts
+          .filter((nextTag) => tagSet.has(nextTag))
           .sort((a, b) => a.localeCompare(b))
           .map((nextTag) => `#${tag} --> #${nextTag}`)
       )

@@ -27,12 +27,12 @@ export type PostsPageInfo = {
 };
 
 export type PostPageInfo = {
-  tags: (Tag & { nextTags: TagKey[] | [null] })[];
+  tags: (Tag & { nextTags: TagKey[] | [null] })[] | null;
   markdown: Markdown | null;
 };
 
 export type TagsPageInfo = {
   groups: GroupKey[];
   root: TagKey | null;
-  tags: (Tag & { nextTags: TagKey[] | [null] })[];
+  tags: (Tag & { nextTags: TagKey[] | [null] })[] | null;
 };
