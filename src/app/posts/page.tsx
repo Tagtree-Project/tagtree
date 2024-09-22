@@ -1,4 +1,6 @@
 import PostCard from "@/components/PostCard";
+import DottedPlaceholder from "@/components/DottedPlaceholder";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { Suspense } from "react";
 import { getPostsPageInfo } from "@/supabase/apis";
 import PageSelector from "@/components/PageSelector";
@@ -44,20 +46,25 @@ export default function Posts({
 
   return (
     <>
-      <div className="flex flex-row justify-center">
-        <div className="max-w-screen-lg border-box w-full p-[16px] flex flex-row flex-wrap justify-between gap-[20px] [&>*]:grow">
-          <Suspense fallback={<div className="text-center">로딩중...</div>}>
+      <Suspense
+        fallback={<DottedPlaceholder icon={faSpinner} text="포스트 정보 로딩중.." />}
+      >
+        <div className="flex flex-row justify-center">
+          <div className="max-w-screen-lg border-box w-full p-[16px] flex flex-row flex-wrap justify-between gap-[20px] [&>*]:grow">
             <PostsWrapper page={page} />
-          </Suspense>
+          </div>
         </div>
-      </div>
-      <div className="flex flex-row justify-center">
-        <div className="max-w-screen-lg border-box p-[16px]">
-          <Suspense fallback={<div className="text-center">로딩중...</div>}>
+      </Suspense>
+
+      <Suspense
+        fallback={<DottedPlaceholder icon={faSpinner} text="로딩중.." />}
+      >
+        <div className="flex flex-row justify-center">
+          <div className="max-w-screen-lg border-box p-[16px]">
             <PageSelectorWrapper page={page} />
-          </Suspense>
+          </div>
         </div>
-      </div>
+      </Suspense>
     </>
   );
 }

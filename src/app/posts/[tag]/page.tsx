@@ -2,10 +2,11 @@ import PostBanner from "@/components/PostBanner";
 import TagView from "@/components/TagView";
 import Sidebar from "@/components/Sidebar";
 import PostArticle from "@/components/PostArticle";
+import DottedPlaceholder from "@/components/DottedPlaceholder";
 import { Suspense } from "react";
 import { getPostPageInfo, getMarkdownUsingPath } from "@/supabase/apis";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faTimes, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import "./markdown.css";
 
 async function BannerWrapper({ tag }: { tag: string }) {
@@ -15,7 +16,11 @@ async function BannerWrapper({ tag }: { tag: string }) {
 
 async function TagViewWrapper({ tag }: { tag: string }) {
   const postPageInfo = await getPostPageInfo(tag);
-  return postPageInfo?.tags && <TagView root={tag} tags={postPageInfo.tags} />;
+  return (
+    postPageInfo?.tags?.length && (
+      <TagView root={tag} tags={postPageInfo.tags} />
+    )
+  );
 }
 
 async function PostWrapper({ tag }: { tag: string }) {
@@ -44,19 +49,28 @@ export default function Post({ params }: { params: { tag: string } }) {
 
   return (
     <>
-      <Suspense fallback={<div className="text-center">로딩중...</div>}>
+      <Suspense
+        fallback={<DottedPlaceholder icon={faSpinner} text="배너 로딩중.." />}
+      >
         <BannerWrapper tag={tag} />
       </Suspense>
-      <Suspense fallback={<div className="text-center">로딩중...</div>}>
+      <Suspense
+        fallback={
+          <DottedPlaceholder icon={faSpinner} text="관련 태그 로딩중.." />
+        }
+      >
         <TagViewWrapper tag={tag} />
       </Suspense>
-      <div className="max-w-full flex flex-row justify-center">
-        <div className="w-full h-auto max-w-screen-lg flex flex-row gap-[16px]">
-          <Suspense fallback={<div className="text-center">로딩중...</div>}>
+
+      <Suspense
+        fallback={<DottedPlaceholder icon={faSpinner} text="본문 로딩중.." />}
+      >
+        <div className="max-w-full flex flex-row justify-center">
+          <div className="w-full h-auto max-w-screen-lg flex flex-row gap-[16px]">
             <PostWrapper tag={tag} />
-          </Suspense>
+          </div>
         </div>
-      </div>
+      </Suspense>
     </>
   );
 }
