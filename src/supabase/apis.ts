@@ -14,7 +14,7 @@ export async function getPostsPageInfo(
     start: start,
     count: count,
   });
-  console.log(data);
+
   return error ? undefined : data;
 }
 
@@ -24,7 +24,7 @@ export async function getPostPageInfo(
   const { data, error } = await supabase.rpc("api_post", {
     target_tag: tag,
   });
-  console.log(data);
+
   const tags = new Set(data.tags?.map(({ tag }: { tag: string }) => tag) || []);
   return error
     ? undefined
@@ -47,7 +47,7 @@ export async function getTagsPageInfo(
   const { data, error } = await supabase.rpc("api_tags", {
     target_group: group,
   });
-  console.log(data);
+
   const tags = new Set(data.tags?.map(({ tag }: { tag: string }) => tag) || []);
   return error
     ? undefined
@@ -68,7 +68,5 @@ export async function getMarkdownUsingPath(
   path: string
 ): Promise<string | undefined> {
   const markdownData = await supabase.storage.from("markdowns").download(path);
-  if (markdownData.error || !markdownData.data) return undefined;
-  console.log(markdownData.data);
-  return markdownData.data.text();
+  return markdownData.error ? undefined : markdownData.data.text();
 }
