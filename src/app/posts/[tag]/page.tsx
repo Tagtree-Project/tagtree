@@ -2,49 +2,28 @@ import PostBanner from "@/components/PostBanner";
 import TagView from "@/components/TagView";
 import Sidebar from "@/components/Sidebar";
 import PostArticle from "@/components/PostArticle";
-import {
-  getTagMeta,
-  getRelations,
-  getRelatedTags,
-  getMarkdownMeta,
-  getMarkdownUsingPath,
-} from "@/supabase/apis";
+import { getPostPageInfo, getMarkdownUsingPath } from "@/supabase/apis";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import "./markdown.css";
 
 export default async function Post({ params }: { params: { tag: string } }) {
   const tag = params.tag;
-
-  const tagMeta = await getTagMeta(tag);
-  if (!tagMeta) return;
-
-  const tags = [...((await getRelatedTags(tag)) || []), tagMeta];
-
-  const nexts = new Map();
-  (await getRelations(tags.map(({ tag }) => tag)))?.forEach(
-    ({ prev, next }) => {
-      if (!nexts.has(prev)) nexts.set(prev, []);
-      nexts.get(prev).push(next);
-    }
-  );
-
-  const tagProps = tags.map(({ tag, expression, tier, markdownID }) => ({
-    tag: tag,
-    expression: expression,
-    tier: tier,
-    next: nexts.get(tag) ?? [],
-    hasMarkdown: markdownID !== null,
-  }));
-
-  const markdownMeta = await getMarkdownMeta(tag);
+  const postPageInfo = await getPostPageInfo(tag);
   const markdown =
-    markdownMeta && (await getMarkdownUsingPath(markdownMeta.path));
+    postPageInfo?.markdown &&
+    (await getMarkdownUsingPath(postPageInfo.markdown.path));
 
-  return markdown !== null ? (
+  return postPageInfo?.markdown ? (
     <>
-      {markdownMeta && <PostBanner {...markdownMeta} />}
-      <TagView root={tag} tags={tagProps} />
+      <PostBanner {...postPageInfo.markdown} />
+      <TagView
+        root={tag}
+        tags={postPageInfo.tags.map(({ nextTags, ...rest }) => ({
+          ...rest,
+          nexts: nextTags.filter((next) => next !== null),
+        }))}
+      />
       {
         <div className="max-w-full flex flex-row justify-center">
           <div className="w-full h-auto max-w-screen-lg flex flex-row gap-[16px]">

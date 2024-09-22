@@ -39,8 +39,8 @@ export interface TagViewTagProps {
   tag: string;
   expression: string;
   tier: number;
-  next: string[];
-  hasMarkdown: boolean;
+  nexts: string[];
+  markdownID: string | null;
 }
 
 export default function TagView({
@@ -103,8 +103,8 @@ export default function TagView({
     // 관계 그래프 생성
     const graph = tags
       .sort((a, b) => a.tag.localeCompare(b.tag))
-      .map(({ tag, next }) =>
-        next
+      .map(({ tag, nexts }) =>
+        nexts
           .sort((a, b) => a.localeCompare(b))
           .map((nextTag) => `#${tag} --> #${nextTag}`)
       )
@@ -113,7 +113,7 @@ export default function TagView({
 
     // 태그 노드 생성
     const nodes = tags
-      .map(({ tag, expression, tier, hasMarkdown }) => {
+      .map(({ tag, expression, tier, markdownID: hasMarkdown }) => {
         const node = renderToString(
           <div
             className={`tag-node ${tag === root ? "root-tag" : ""} ${
@@ -239,10 +239,7 @@ export default function TagView({
             (i) => rootCenter[i] - preCenter[i]
           );
           // 아래 분기문은 Next.js의 이중 호출에 의한 스크롤 초기화를 막기 위한 검사문임.
-          if (
-            ref.current.scrollLeft === 0 &&
-            ref.current.scrollTop === 0
-          ) {
+          if (ref.current.scrollLeft === 0 && ref.current.scrollTop === 0) {
             [ref.current.scrollLeft, ref.current.scrollTop] = [transX, transY];
             scrollPos.current = { left: transX, top: transY };
           }

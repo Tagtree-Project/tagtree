@@ -1,29 +1,38 @@
-export type TagKey = string;
-export type GroupKey = string;
-export type MarkdownID = string;
+type TagKey = string;
+type GroupKey = string;
+type MarkdownID = string;
 
-export type Tag = {
+type Tag = {
   tag: TagKey;
   expression: string;
   tier: number;
   markdownID: MarkdownID | null;
 };
 
-export type Group = {
-  group: GroupKey;
-  root: TagKey | null;
-};
-
-export type Relation = {
-  prev: TagKey;
-  next: TagKey;
-};
-
-export type Markdown = {
+type Markdown = {
   id: MarkdownID;
   path: string;
-  title: string | null;
+  title: string;
   subtitle: string | null;
   date: string | null;
   writer: string | null;
+};
+
+export type PostsPageInfo = {
+  totalCount: number;
+  markdowns: {
+    markdown: Markdown;
+    tags: Tag[];
+  }[];
+};
+
+export type PostPageInfo = {
+  tags: (Tag & { nextTags: TagKey[] | [null] })[];
+  markdown: Markdown | null;
+};
+
+export type TagsPageInfo = {
+  groups: GroupKey[];
+  root: TagKey | null;
+  tags: (Tag & { nextTags: TagKey[] | [null] })[];
 };
