@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { PostsPageInfo, PostPageInfo, TagsPageInfo } from "./responses";
+import { PostsPageInfo, PostPageInfo, TagsPageInfo, Tag } from "./responses";
 
 const supabase = createClient(
   process.env.SUPABASE_URL ?? "",
@@ -25,7 +25,20 @@ export async function getPostPageInfo(
     target_tag: tag,
   });
   console.log(data);
-  return error ? undefined : data;
+  const tags = new Set(data.tags?.map(({ tag }: { tag: string }) => tag) || []);
+  return error
+    ? undefined
+    : {
+        ...data,
+        tags:
+          data.tags?.map(
+            (tag: Tag & { nextTags: (string | null)[] | null }) => ({
+              ...tag,
+              nextTags:
+                tag.nextTags?.filter((nextTag) => tags.has(nextTag)) || [],
+            })
+          ) || [],
+      };
 }
 
 export async function getTagsPageInfo(
@@ -35,7 +48,20 @@ export async function getTagsPageInfo(
     target_group: group,
   });
   console.log(data);
-  return error ? undefined : data;
+  const tags = new Set(data.tags?.map(({ tag }: { tag: string }) => tag) || []);
+  return error
+    ? undefined
+    : {
+        ...data,
+        tags:
+          data.tags?.map(
+            (tag: Tag & { nextTags: (string | null)[] | null }) => ({
+              ...tag,
+              nextTags:
+                tag.nextTags?.filter((nextTag) => tags.has(nextTag)) || [],
+            })
+          ) || [],
+      };
 }
 
 export async function getMarkdownUsingPath(
