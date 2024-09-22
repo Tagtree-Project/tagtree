@@ -39,7 +39,7 @@ export interface TagViewTagProps {
   tag: string;
   expression: string;
   tier: number;
-  nexts: string[];
+  nextTags: string[];
   markdownID: string | null;
 }
 
@@ -103,8 +103,8 @@ export default function TagView({
     // 관계 그래프 생성
     const graph = tags
       .sort((a, b) => a.tag.localeCompare(b.tag))
-      .map(({ tag, nexts }) =>
-        nexts
+      .map(({ tag, nextTags }) =>
+        nextTags
           .sort((a, b) => a.localeCompare(b))
           .map((nextTag) => `#${tag} --> #${nextTag}`)
       )
@@ -267,7 +267,7 @@ export default function TagView({
         >
           <div className="flex flex-row justify-center items-center gap-[10px]">
             <FontAwesomeIcon icon={faSpinner} />
-            관련 태그 로딩중..
+            태그 지도를 그리는 중..
           </div>
         </div>
       </div>
