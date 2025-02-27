@@ -1,8 +1,7 @@
 import Post from "@/pages/Post";
 
-const Page = ({ params }: { params: { postId: string } }) => {
-  const postId = params.postId;
-
+const Page = async ({ params }: { params: Promise<{ postId: string }> }) => {
+  const { postId } = await params;
   return <Post postId={postId}/>;
 };
 

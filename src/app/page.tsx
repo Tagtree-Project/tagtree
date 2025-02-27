@@ -1,6 +1,6 @@
 import Home from "@/pages/Home";
 
-const Page = () => {
+const Page = async () => {
   return <Home/>;
 }
 

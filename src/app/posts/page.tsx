@@ -1,14 +1,8 @@
 import Posts from "@/pages/Posts";
 
-const Page = ({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
-}) => {
-  const page =
-    typeof searchParams.page === "string" ? Number(searchParams.page) : 0;
-
-  return <Posts page={page}/>;
+const Page = async ({ searchParams, }: { searchParams: Promise<{ page?: number }>}) => {
+  const { page } = await searchParams;
+  return <Posts page={page ?? 0}/>;
 }
 
 export default Page;
