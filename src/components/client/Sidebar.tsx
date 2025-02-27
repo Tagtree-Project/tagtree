@@ -1,10 +1,10 @@
 "use client";
 
 import Slugger from "github-slugger";
-import { appName } from "../constants";
+import { appNameEnglish } from "@/constants";
 import { useEffect, useState } from "react";
 
-export default function Sidebar({ markdown }: { markdown: string }) {
+const Sidebar = ({ markdown }: { markdown: string }) => {
   const slugger = new Slugger();
   const [top, setTop] = useState(0);
   const [side, setSide] = useState<{ depth: number; header: string }[]>([]);
@@ -12,8 +12,8 @@ export default function Sidebar({ markdown }: { markdown: string }) {
   useEffect(() => {
     let code = 0;
     const header: { depth: number; header: string }[] = [];
-    markdown.split("\n").forEach((untrimed) => {
-      const line = untrimed.trim();
+    markdown.split("\n").forEach((untrimmed) => {
+      const line = untrimmed.trim();
 
       if (line.length >= 3 && line.substring(0, 3) === "```") {
         if (line.length > 3) code++;
@@ -23,12 +23,14 @@ export default function Sidebar({ markdown }: { markdown: string }) {
       if (!line.length || line[0] !== "#" || code > 0) return;
 
       let depth = 0;
-      while (line[++depth] === "#") continue;
+      while (line[++depth] === "#") {
+        // empty
+      }
       header.push({ depth: depth, header: line.slice(depth).trim() });
     });
 
     setTop(
-      (document.getElementById(`${appName}-header`)?.offsetHeight || 0) + 32
+      (document.getElementById(`${appNameEnglish}-header`)?.offsetHeight || 0) + 32
     );
     setSide(header);
   }, [markdown]);
@@ -39,7 +41,7 @@ export default function Sidebar({ markdown }: { markdown: string }) {
       style={{
         top: `${top}px`,
       }}
-      id={`${appName}-sidebar`}
+      id={`${appNameEnglish}-sidebar`}
     >
       <h1 className="text-[1.2rem] font-bold">Index</h1>
       <div>
@@ -67,4 +69,6 @@ export default function Sidebar({ markdown }: { markdown: string }) {
       </div>
     </div>
   );
-}
+};
+
+export default Sidebar;

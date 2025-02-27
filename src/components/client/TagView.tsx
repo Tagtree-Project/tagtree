@@ -6,16 +6,16 @@ import { renderToString } from "react-dom/server";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCode, faSpinner } from "@fortawesome/free-solid-svg-icons";
-import mermaid from "mermaid";
+import { compressObjectToUrlSafeBase64 } from "@/utils/pako";
 
-const tierColor = `
-classDef tier0 fill:#ad5600, color:#fff, stroke:#0000
-classDef tier1 fill:#435f7a, color:#fff, stroke:#0000
-classDef tier2 fill:#ec9a00, color:#fff, stroke:#0000
-classDef tier3 fill:#27e2a4, color:#fff, stroke:#0000
-classDef tier4 fill:#00b4fc, color:#fff, stroke:#0000
-classDef tier5 fill:#ff0062, color:#fff, stroke:#0000
-`;
+const tierColor = [
+  "classDef tier0 fill:#ad5600, color:#fff, stroke:#0000",
+  "classDef tier1 fill:#435f7a, color:#fff, stroke:#0000",
+  "classDef tier2 fill:#ec9a00, color:#fff, stroke:#0000",
+  "classDef tier3 fill:#27e2a4, color:#fff, stroke:#0000",
+  "classDef tier4 fill:#00b4fc, color:#fff, stroke:#0000",
+  "classDef tier5 fill:#ff0062, color:#fff, stroke:#0000",
+].join("\n");
 
 const shadowFilter = `
 <defs>
@@ -35,23 +35,21 @@ const shadowFilter = `
 </defs>
 `;
 
-export interface TagViewTagProps {
-  tag: string;
-  expression: string;
-  tier: number;
-  nextTags: string[];
-  markdownID: string | null;
-}
+export type TagViewProp = {
+  root?: string,
+  tags: TagViewTagProp[],
+  height?: string,
+};
 
-export default function TagView({
-  root,
-  tags,
-  height,
-}: {
-  root: string | undefined;
-  tags: TagViewTagProps[];
-  height?: string | undefined;
-}) {
+export type TagViewTagProp = {
+  tag: string;
+  name: string;
+  tier: number;
+  next: string[];
+  postUrl: string | null;
+};
+
+const TagView = (prop: TagViewProp) => {
   const router = useRouter();
 
   // 렌더링 관련 변수
@@ -101,92 +99,86 @@ export default function TagView({
   // Mermaid 다이어그램을 로드하고 초기 설정을 진행
   useEffect(() => {
     // 관계 그래프 생성
-    const graph = tags
+    const graph = prop.tags
       .sort((a, b) => a.tag.localeCompare(b.tag))
-      .map(({ tag, nextTags }) =>
-        nextTags
+      .map(({ tag, next }) =>
+        next
           .sort((a, b) => a.localeCompare(b))
-          .map((nextTag) => `#${tag} --> #${nextTag}`)
+          .map((nextTag) => `#${tag} --> #${nextTag}`),
       )
       .flat()
       .join("\n");
 
     // 태그 노드 생성
-    const nodes = tags
-      .map(({ tag, expression, tier, markdownID: hasMarkdown }) => {
-        const node = renderToString(
-          <div
-            className={`tag-node ${tag === root ? "root-tag" : ""} ${
-              hasMarkdown ? "clickable-tag" : ""
-            }`}
-            style={{
-              width: "max-content",
-              height: "30px",
-              fontFamily: "Noto Sans KR",
-              display: "flex",
-              alignItems: "center",
-              gap: "5px",
-              cursor: "pointer",
-            }}
-            draggable="false"
-          >
-            {hasMarkdown && (
-              <span
-                style={{
-                  backgroundColor: "red",
-                  borderRadius: "50%",
-                  display: "inline-flex",
-                  width: "30px",
-                  height: "30px",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <FontAwesomeIcon icon={faCode} />
-              </span>
-            )}
-            <div
+    const nodes = prop.tags.map(({ tag, name, tier, postUrl }) => {
+      const node = renderToString(
+        <div
+          className={`tag-node${tag === prop.root ? " root-tag" : ""}${postUrl ? " clickable-tag" : ""}`}
+          style={{
+            width: "max-content",
+            height: "30px",
+            display: "flex",
+            alignItems: "center",
+            gap: "5px",
+            cursor: "pointer",
+          }}
+          draggable="false"
+        >
+          {postUrl && (
+            <span
+              className={`url-container ${postUrl}`}
               style={{
-                display: "flex",
-                alignItems: "baseline",
-                gap: "5px",
+                backgroundColor: "red",
+                borderRadius: "50%",
+                display: "inline-flex",
+                width: "30px",
+                height: "30px",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
-              <span
-                style={{
-                  fontWeight: "bold",
-                }}
-              >
-                #{expression}
-              </span>
-              <span
-                className="tag-text"
-                style={{
-                  fontSize: "0.8em",
-                }}
-              >
-                {tag}
-              </span>
-            </div>
+              <FontAwesomeIcon
+                icon={faCode}
+                width={24}
+                height={24}
+              />
+            </span>
+          )}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              gap: "5px",
+            }}
+          >
+            <span style={{ fontWeight: "bold" }}>
+              #{name}
+            </span>
+            <span
+              className="tag-text"
+              style={{ fontSize: "0.8em" }}
+            >
+              {tag}
+            </span>
           </div>
-        );
+        </div>,
+      );
 
-        return `#${tag}(["${node}"]):::tier${tier}`;
-      })
-      .join("\n");
+      return `#${tag}(["${node}"]):::tier${tier}`;
+    }).join("\n");
 
     // 전체 스크립트 생성
-    const mermaidScript = `graph LR\n${graph}\n${nodes}\n${tierColor}`;
+    const mermaidScript = ["graph LR", graph, nodes, tierColor].join("\n\n");
+    const query = compressObjectToUrlSafeBase64({ code: mermaidScript });
+    console.log(`https://mermaid.ink/svg/pako:${query}`)
 
-    // 렌더링
-    mermaid
-      .render(`tagview-${Math.random().toString().slice(2)}`, mermaidScript)
-      .then(({ bindFunctions, svg }) => {
-        if (!ref.current || !bindFunctions) return;
+    fetch(`https://mermaid.ink/svg/pako:${query}`)
+      .then(res => res.text())
+      .then(svg => {
+        const div = ref.current!
 
-        ref.current.innerHTML = svg;
-        bindFunctions(ref.current);
-        const current = ref.current.firstChild as SVGSVGElement;
+        div.setHTMLUnsafe(svg);
+        const current = div.firstChild as SVGSVGElement;
 
         // 크기 조정
         current.setAttribute(
@@ -197,20 +189,17 @@ export default function TagView({
                 .computedStyleMap()
                 ?.get("max-width")
                 ?.toString()
-                .slice(0, -2)
+                .slice(0, -2),
             ) * 0.8
-          }px`
+          }px`,
         );
 
         // 태그 라우팅
-        const clickableTagElements = current.querySelectorAll(".clickable-tag");
-        clickableTagElements.forEach((tagElement) => {
-          const tag = (
-            tagElement.querySelector("span.tag-text") as HTMLSpanElement
-          ).innerText;
+        current.querySelectorAll(".clickable-tag").forEach((tagElement) => {
+          const url = tagElement.querySelector(".url-container")!.className.replace("url-container", "").trim();
           tagElement.addEventListener("click", (event) => {
             event.preventDefault();
-            if (!isDragging.current) router.push(`/posts/${tag}`);
+            if (!isDragging.current) router.push(url);
           });
         });
 
@@ -229,28 +218,23 @@ export default function TagView({
         // 스크롤 초기화
         const rootElement = current.querySelector(".root-tag");
         if (rootElement) {
-          const [preCenter, rootCenter] = [ref.current, rootElement]
+          const [preCenter, rootCenter] = [div, rootElement]
             .map((element) => element.getBoundingClientRect())
-            .map((rect) => [
-              rect.left + rect.width / 2,
-              rect.top + rect.height / 2,
-            ]);
-          const [transX, transY] = [0, 1].map(
-            (i) => rootCenter[i] - preCenter[i]
-          );
+            .map((rect) => [rect.left + rect.width / 2, rect.top + rect.height / 2]);
+          const [transX, transY] = [0, 1].map(i => rootCenter[i] - preCenter[i]);
           // 아래 분기문은 Next.js의 이중 호출에 의한 스크롤 초기화를 막기 위한 검사문임.
-          if (ref.current.scrollLeft === 0 && ref.current.scrollTop === 0) {
-            [ref.current.scrollLeft, ref.current.scrollTop] = [transX, transY];
+          if (div.scrollLeft === 0 && div.scrollTop === 0) {
+            [div.scrollLeft, div.scrollTop] = [transX, transY];
             scrollPos.current = { left: transX, top: transY };
           }
         }
       });
-  }, [root, tags, router]);
+  }, [prop.root, prop.tags, router]);
 
   return (
     <div
       className="w-full box-border p-[16px] flex flex-row justify-center max-md:px-0 max-md:py-[16px]"
-      style={{ height: height || "fit-content" }}
+      style={{ height: prop.height || "fit-content" }}
     >
       <div className="max-w-screen-lg w-full flex flex-row justify-center items-center shadow-inner md:rounded">
         <div
@@ -266,11 +250,13 @@ export default function TagView({
           onTouchCancel={(e) => onDragEnd(e)}
         >
           <div className="flex flex-row justify-center items-center gap-[10px]">
-            <FontAwesomeIcon icon={faSpinner} />
+            <FontAwesomeIcon icon={faSpinner}/>
             태그 지도를 그리는 중..
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default TagView;
