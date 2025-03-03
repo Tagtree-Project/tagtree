@@ -8,7 +8,7 @@ import { appNameEnglish } from "@/constants";
 import Link from "next/link";
 import "highlight.js/styles/github-dark.css";
 import "@/styles/markdown.css";
-import { compressObjectToUrlSafeBase64 } from "@/utils/pako";
+import DiagramView from "@/components/client/DiagramView";
 
 const PostArticle = ({ markdown }: { markdown: string }) => {
   return (
@@ -24,15 +24,8 @@ const PostArticle = ({ markdown }: { markdown: string }) => {
           code(props) {
             const { className, children } = props;
             const classNames = className?.split(" ") ?? [];
-            if (!classNames.includes("language-mermaid")) return <code {...props} />;
-
-            const query = compressObjectToUrlSafeBase64({ code: children?.toString() });
-            // eslint-disable-next-line @next/next/no-img-element
-            return <img
-              src={`https://mermaid.ink/svg/pako:${query}`}
-              alt="다이어그램"
-              style={{ width: "100%", height: "auto" }}
-            />;
+            if (!classNames.includes("language-mermaid") || !children) return <code {...props} />;
+            else return <DiagramView script={children.toString()}/>;
           },
         }}
         remarkPlugins={[remarkMath, remarkGfm]}

@@ -6,7 +6,7 @@ import { renderToString } from "react-dom/server";
 import { useRouter } from "next/navigation";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCode, faSpinner } from "@fortawesome/free-solid-svg-icons";
-import { compressObjectToUrlSafeBase64 } from "@/utils/pako";
+import mermaid from "mermaid";
 
 const tierColor = [
   "classDef tier0 fill:#ad5600, color:#fff, stroke:#0000",
@@ -54,6 +54,7 @@ const TagView = (prop: TagViewProp) => {
 
   // 렌더링 관련 변수
   const ref = useRef<HTMLDivElement>(null);
+  const isRenderingStarted = useRef(false);
   const isDragStarted = useRef(false);
   const isDragging = useRef(false);
   const startPos = useRef({ x: 0, y: 0 });
@@ -99,7 +100,8 @@ const TagView = (prop: TagViewProp) => {
   // Mermaid 다이어그램을 로드하고 초기 설정을 진행
   useEffect(() => {
     const div = ref.current;
-    if (!div) return;
+    if (!div || isRenderingStarted.current) return;
+    isRenderingStarted.current = true;
 
     // 관계 그래프 생성
     const graph = prop.tags
@@ -172,65 +174,63 @@ const TagView = (prop: TagViewProp) => {
 
     // 전체 스크립트 생성
     const mermaidScript = ["graph LR", graph, nodes, tierColor].join("\n\n");
-    const query = compressObjectToUrlSafeBase64({ code: mermaidScript });
-    console.log(`https://mermaid.ink/svg/pako:${query}`)
 
-    fetch(`https://mermaid.ink/svg/pako:${query}`)
-      .then(res => res.text())
-      .then(svg => {
-        div.setHTMLUnsafe(svg);
-        const current = div.firstChild as SVGSVGElement;
+    // 렌더링 진행
+    mermaid.render(
+      `tag-view-${Math.random().toString().slice(2)}`,
+      mermaidScript,
+    ).then(({ svg, bindFunctions }) => {
+      div.innerHTML = svg;
+      bindFunctions?.(div);
+      const current = div.firstChild as SVGSVGElement;
 
-        // 크기 조정
-        current.setAttribute(
-          "width",
-          `${
-            Number(
-              current
-                .computedStyleMap()
-                ?.get("max-width")
-                ?.toString()
-                .slice(0, -2),
-            ) * 0.8
-          }px`,
-        );
+      // 크기 조정
+      current.setAttribute(
+        "width",
+        `${
+          Number(
+            current
+              .computedStyleMap()
+              ?.get("max-width")
+              ?.toString()
+              .slice(0, -2),
+          ) * 0.8
+        }px`,
+      );
 
-        // 태그 라우팅
-        current.querySelectorAll(".clickable-tag").forEach((tagElement) => {
-          const url = tagElement.querySelector(".url-container")!.className.replace("url-container", "").trim();
-          tagElement.addEventListener("click", (event) => {
-            event.preventDefault();
-            if (!isDragging.current) router.push(url);
-          });
+      // 태그 클릭 이벤트
+      current.querySelectorAll(".clickable-tag").forEach((tagElement) => {
+        const url = tagElement.querySelector(".url-container")!.className.replace("url-container", "").trim();
+        tagElement.addEventListener("click", (event) => {
+          event.preventDefault();
+          if (!isDragging.current) router.push(url);
         });
-
-        // 그림자 적용
-        current.insertAdjacentHTML("afterbegin", shadowFilter);
-        ["rect", "circle"].forEach((shape) => {
-          current.querySelectorAll(shape).forEach((element) => {
-            element.setAttribute("filter", `url(#drop-shadow)`);
-          });
-        });
-        current.viewBox.baseVal.x -= 8;
-        current.viewBox.baseVal.y -= 8;
-        current.viewBox.baseVal.width += 10;
-        current.viewBox.baseVal.height += 10;
-
-        // 스크롤 초기화
-        const rootElement = current.querySelector(".root-tag");
-        if (rootElement) {
-          const [preCenter, rootCenter] = [div, rootElement]
-            .map((element) => element.getBoundingClientRect())
-            .map((rect) => [rect.left + rect.width / 2, rect.top + rect.height / 2]);
-          const [transX, transY] = [0, 1].map(i => rootCenter[i] - preCenter[i]);
-          // 아래 분기문은 Next.js의 이중 호출에 의한 스크롤 초기화를 막기 위한 검사문임.
-          if (div.scrollLeft === 0 && div.scrollTop === 0) {
-            [div.scrollLeft, div.scrollTop] = [transX, transY];
-            scrollPos.current = { left: transX, top: transY };
-          }
-        }
       });
-  }, [prop.root, prop.tags, router]);
+
+      // 그림자 적용
+      current.insertAdjacentHTML("afterbegin", shadowFilter);
+      ["rect", "circle"].forEach((shape) => {
+        current.querySelectorAll(shape).forEach((element) => {
+          element.setAttribute("filter", `url(#drop-shadow)`);
+        });
+      });
+      current.viewBox.baseVal.x -= 8;
+      current.viewBox.baseVal.y -= 8;
+      current.viewBox.baseVal.width += 10;
+      current.viewBox.baseVal.height += 10;
+
+      // 스크롤 초기화
+      const rootElement = current.querySelector(".root-tag");
+      if (rootElement) {
+        const [preCenter, rootCenter] = [div, rootElement]
+          .map((element) => element.getBoundingClientRect())
+          .map((rect) => [rect.left + rect.width / 2, rect.top + rect.height / 2]);
+        const [transX, transY] = [0, 1].map(i => rootCenter[i] - preCenter[i]);
+        [div.scrollLeft, div.scrollTop] = [transX, transY];
+        scrollPos.current = { left: transX, top: transY };
+      }
+    });
+  }, [prop, router]);
 
   return (
     <div
