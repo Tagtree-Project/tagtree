@@ -9,7 +9,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import repository from "@/di/Repository";
 
-const viewHeight = "500px";
+const viewHeight = "max(500px, calc(100vh - 300px))";
 
 const ButtonWrapper = async ({ groupName }: { groupName: string | null }) => {
   const groups = await repository.getAllGroups();
