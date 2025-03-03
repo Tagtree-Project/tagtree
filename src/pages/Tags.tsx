@@ -7,27 +7,26 @@ import {
   faQuestion,
   faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
-import tagRepository from "@/data/repositories/TagRepository";
+import repository from "@/di/Repository";
 
 const viewHeight = "500px";
 
 const ButtonWrapper = async ({ groupName }: { groupName: string | null }) => {
-  const groups = await tagRepository.getAllGroups();
+  const groups = await repository.getAllGroups();
 
   return groups
-    ?.sort((a, b) => a.groupName.localeCompare(b.groupName))
-    ?.map((group) => {
-      const isRoot = group.groupName === groupName;
+    ?.map(group => {
+      const isRoot = group === groupName;
 
       return (
         <RouterButton
-          key={group.groupName}
-          url={`/tags?group=${group.groupName}`}
+          key={group}
+          url={`/tags?group=${group}`}
           className={`m-[5px] p-[10px] shadow bg-transparent border-[none] rounded-[16px] [transition:0.2s] hover:bg-brand ${
             isRoot && "bg-brand"
           }`}
           style={isRoot ? { color: "white" } : undefined}
-          text={group.groupName}
+          text={group}
         />
       );
     });
@@ -42,32 +41,28 @@ const TagViewWrapper = async ({ groupName }: { groupName: string | null }) => {
     />
   );
 
-  const groups = await tagRepository.getAllGroups();
-  const tagGroup = groups.find((group) => group.groupName == groupName);
+  const tags = await repository.getTagRelationsInGroup(groupName);
 
-  if (!tagGroup) return (
-    <DottedPlaceholder
-      icon={faQuestion}
-      text="잘못된 카테고리입니다."
-      style={{ height: viewHeight }}
-    />
-  );
-
-  const tags = await tagRepository.getTagRelationsInGroup(groupName);
-  return tags && (
+  return tags ? (
     <TagView
       key={groupName}
-      root={tagGroup.rootTagId || undefined}
-      tags={Array.from(tags.values()).map(tag => {
+      root={tags.root ?? undefined}
+      tags={Array.from(tags.tags.values()).map(tag => {
         return {
           tag: tag.id,
           name: tag.name,
           tier: tag.tier,
           next: tag.next,
-          postUrl: tag.markdownId ? `/posts/${tag.markdownId}` : null,
+          postUrl: tag.postId && `/posts/${tag.postId}`,
         } as TagViewTagProp;
       })}
       height={viewHeight}
+    />
+  ) : (
+    <DottedPlaceholder
+      icon={faQuestion}
+      text="잘못된 카테고리입니다."
+      style={{ height: viewHeight }}
     />
   );
 };

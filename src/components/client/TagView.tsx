@@ -98,6 +98,9 @@ const TagView = (prop: TagViewProp) => {
 
   // Mermaid 다이어그램을 로드하고 초기 설정을 진행
   useEffect(() => {
+    const div = ref.current;
+    if (!div) return;
+
     // 관계 그래프 생성
     const graph = prop.tags
       .sort((a, b) => a.tag.localeCompare(b.tag))
@@ -175,8 +178,6 @@ const TagView = (prop: TagViewProp) => {
     fetch(`https://mermaid.ink/svg/pako:${query}`)
       .then(res => res.text())
       .then(svg => {
-        const div = ref.current!
-
         div.setHTMLUnsafe(svg);
         const current = div.firstChild as SVGSVGElement;
 

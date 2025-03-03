@@ -3,12 +3,12 @@ import DottedPlaceholder from "@/components/server/DottedPlaceholder";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { Suspense } from "react";
 import PageSelector from "@/components/client/PageSelector";
-import postRepository from "@/data/repositories/PostRepository";
+import repository from "@/di/Repository";
 
 const PostsWrapper = async ({ page }: { page: number }) => {
-  const postInfos = await postRepository.getPostInfosByPageNumber(page);
+  const postInfos = await repository.getPostInfosByPage(page);
 
-  return postInfos.map((info) => (
+  return postInfos?.map((info) => (
     <PostCard
       key={info.id}
       postUrl={`/posts/${info.id}`}
@@ -21,11 +21,11 @@ const PostsWrapper = async ({ page }: { page: number }) => {
 };
 
 const PageSelectorWrapper = async ({ page }: { page: number }) => {
-  const { totalPostCount, maxPostsPerPage } = await postRepository.getPagingInfo();
+  const pagingInfo = await repository.getPagingInfo();
 
-  return (
+  return pagingInfo && (
     <PageSelector
-      pageCount={Math.ceil(totalPostCount / maxPostsPerPage)}
+      pageCount={Math.ceil(pagingInfo.totalPostCount / pagingInfo.maxPostsPerPage)}
       showingPageCount={5}
       currentPage={page}
       baseUrl={"/posts"}

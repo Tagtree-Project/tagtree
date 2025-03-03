@@ -6,12 +6,11 @@ import DottedPlaceholder from "@/components/server/DottedPlaceholder";
 import { Suspense } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes, faSpinner } from "@fortawesome/free-solid-svg-icons";
-import postRepository from "@/data/repositories/PostRepository";
-import tagRepository from "@/data/repositories/TagRepository";
-import { PostId } from "@/data/models/ids/PostId";
+import { PostId } from "@/core/models/ids/PostId";
+import repository from "@/di/Repository";
 
 const BannerWrapper = async ({ postId }: { postId: PostId }) => {
-  const postInfo = await postRepository.getPostInfo(postId);
+  const postInfo = await repository.getPostInfo(postId);
 
   return postInfo && <PostBanner
     title={postInfo.title}
@@ -22,27 +21,24 @@ const BannerWrapper = async ({ postId }: { postId: PostId }) => {
 };
 
 const TagViewWrapper = async ({ postId }: { postId: PostId }) => {
-  const postInfo = await postRepository.getPostInfo(postId);
-  if (!postInfo) return null;
+  const relation = await repository.getTagRelations(postId);
 
-  const tags = await tagRepository.getTagRelations(postInfo.tag);
-  return tags && <TagView
-    root={postId}
-    tags={Array.from(tags.values()).map(tag => {
+  return relation && <TagView
+    root={relation.root ?? undefined}
+    tags={Array.from(relation.tags.values()).map(tag => {
       return {
         tag: tag.id,
         name: tag.name,
         tier: tag.tier,
         next: tag.next,
-        postUrl: tag.markdownId ? `/posts/${tag.markdownId}` : null,
+        postUrl: tag.postId ? `/posts/${tag.postId}` : null,
       } as TagViewTagProp;
     })}
   />;
 };
 
 const PostWrapper = async ({ postId }: { postId: PostId }) => {
-  const postInfo = await postRepository.getPostInfo(postId);
-  const content = postInfo && await postRepository.getPostContent(postInfo.id);
+  const content = await repository.getPostContent(postId);
 
   return content ? (
     <>

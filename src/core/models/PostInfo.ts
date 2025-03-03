@@ -1,5 +1,4 @@
-import { PostId } from "@/data/models/ids/PostId";
-import { TagId } from "@/data/models/ids/TagId";
+import { PostId } from "@/core/models/ids/PostId";
 
 export type PostInfo = {
   readonly id: PostId,
@@ -7,5 +6,4 @@ export type PostInfo = {
   readonly subtitle: string | null,
   readonly date: Date,
   readonly writer: string | null,
-  readonly tag: TagId,
 };
