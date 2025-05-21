@@ -6,7 +6,6 @@ import {
   PagingInfoDTO,
 } from "@/data/api/dtos";
 import { supabase } from "@/data/api/supabase/supabase";
-import { basementUrl } from "@/constants";
 
 const pageSize = 15;
 
@@ -42,5 +41,5 @@ export const getTagInfosRelatedWithMarkdown = async (markdownId: string): Promis
 
 export const getMarkdownContent = async (markdownId: string): Promise<string | undefined> => {
   const meta = await getMarkdownMeta(markdownId);
-  return meta && await fetch(`${basementUrl}/markdowns/${meta.file_name}`).then(res => res.text());
+  return meta && await fetch(`${process.env.BASEMENT_SERVER_URL}/markdowns/${meta.file_name}`).then(res => res.text());
 }
